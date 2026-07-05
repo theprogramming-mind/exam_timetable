@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Study Timetable — FS/FEDU 200L | Updated Jul 4</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F0EEE6;color:#1a1a1a;font-size:15px;line-height:1.6}
+
+/* HEADER */
+.hdr{background:#042C53;color:#E6F1FB;padding:24px 28px 20px}
+.hdr-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.5;margin-bottom:6px}
+.hdr h1{font-size:24px;font-weight:700;margin-bottom:4px}
+.hdr-sub{font-size:13px;opacity:.6;margin-bottom:18px}
+.hdr-stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{background:rgba(230,241,251,.1);border-radius:8px;padding:9px 14px}
+.stat-v{font-size:14px;font-weight:600}
+.stat-l{font-size:11px;opacity:.5}
+
+/* TABS */
+.tabs{display:flex;background:#fff;border-bottom:1px solid #e2e8f0;overflow-x:auto}
+.tbtn{display:flex;align-items:center;gap:6px;padding:12px 18px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:500;color:#64748B;border-bottom:2.5px solid transparent;white-space:nowrap;font-family:inherit;transition:color .15s}
+.tbtn.on{color:#185FA5;border-bottom-color:#185FA5}
+
+/* PANELS */
+.panel{display:none}.panel.on{display:block}
+.content{padding:24px 20px;max-width:940px;margin:0 auto}
+
+/* HEADINGS */
+.sh{font-size:16px;font-weight:600;margin-bottom:4px}
+.ss{font-size:13px;color:#64748B;margin-bottom:16px}
+
+/* COURSE GRID */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:28px}
+.ccard{border-radius:12px;padding:13px 14px;border:1px solid}
+.cname{font-size:14px;font-weight:700;margin-bottom:7px}
+.cinfo{font-size:12px;line-height:1.9;opacity:.85}
+.cbadge{margin-top:7px;font-size:11px;font-weight:700;background:rgba(255,255,255,.4);border-radius:6px;padding:2px 8px;display:inline-block}
+
+/* PHASE BARS */
+.phase{display:flex;gap:12px;border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:10px;border-left:3px solid}
+.ph-lbl{min-width:68px}
+.ph-name{font-size:13px;font-weight:700}
+.ph-range{font-size:11px;margin-top:2px;opacity:.7}
+.ph-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.ph-desc{font-size:13px;opacity:.85;line-height:1.6}
+
+/* SPARK STEPS */
+.spark-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px;margin-bottom:28px}
+.spark-card{border-radius:12px;padding:16px;border:1px solid}
+.spark-letter{font-size:32px;font-weight:800;margin-bottom:8px;line-height:1}
+.spark-title{font-size:14px;font-weight:700;margin-bottom:4px}
+.spark-time{font-size:11px;font-weight:600;opacity:.65;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.spark-desc{font-size:13px;line-height:1.6;opacity:.85}
+
+/* WEEK BLOCKS */
+.wblk{margin-bottom:18px}
+.whdr{background:#042C53;color:#E6F1FB;border-radius:10px 10px 0 0;padding:12px 16px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
+.wbody{border:1px solid #E2E8F0;border-top:none;border-radius:0 0 10px 10px;overflow:hidden;background:#fff}
+.drow{border-bottom:1px solid #F1F5F9}
+.drow:last-child{border-bottom:none}
+.dtrig{width:100%;display:flex;align-items:center;gap:12px;padding:12px 16px;border:none;background:none;cursor:pointer;text-align:left;font-family:inherit}
+.dtrig:hover,.dtrig.open{background:#F8FAFC}
+.ddate{min-width:90px;font-size:12px;font-weight:600;color:#64748B;flex-shrink:0}
+.dtags{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+.tag{padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid;white-space:nowrap}
+.dchev{font-size:11px;color:#94A3B8;flex-shrink:0}
+.ddetail{padding:4px 16px 16px;background:#F8FAFC;display:none}
+.ddetail.open{display:block}
+
+/* SPARK STEPS IN DAY */
+.spark-steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:10px}
+.sstep{background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:10px 10px}
+.sstep-lbl{font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.sstep-letter{font-size:11px;font-weight:800;margin-bottom:2px}
+.sstep-text{font-size:12px;line-height:1.5;color:#334155}
+
+/* TIP BOX */
+.tip{background:#FAEEDA;border:1px solid #EF9F27;border-radius:8px;padding:10px 14px;font-size:13px;color:#412402;line-height:1.6}
+
+/* ALERT */
+.alert{border-radius:8px;padding:12px 16px;font-size:13px;line-height:1.6;margin-bottom:18px;border:1px solid}
+.danger{background:#FCEBEB;border-color:#F7C1C1;color:#501313}
+.info{background:#E6F1FB;border-color:#B5D4F4;color:#042C53}
+.warn{background:#FAEEDA;border-color:#EF9F27;color:#412402}
+.green{background:#E1F5EE;border-color:#1D9E75;color:#04342C}
+
+/* EXAM CARDS */
+.ecard{margin-bottom:10px;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden;background:#fff}
+.ehdr{padding:11px 16px;display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;color:#E6F1FB}
+.edate{font-size:14px;font-weight:700}
+.epills{display:flex;gap:6px;flex-wrap:wrap}
+.epill{background:rgba(230,241,251,.18);border-radius:6px;padding:2px 10px;font-size:12px;font-weight:500}
+.ebody{padding:12px 16px;display:flex;gap:12px;flex-wrap:wrap}
+.enext{min-width:155px;flex:1}
+.enext-l{font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.enext-v{font-size:14px;font-weight:600}
+.estrat{flex:2;min-width:200px;background:#FAEEDA;border:1px solid #EF9F27;border-radius:8px;padding:10px 14px}
+.estrat-l{font-size:10px;font-weight:700;color:#412402;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.estrat-t{font-size:13px;color:#412402;line-height:1.6}
+
+/* TIMELINE */
+.trow{display:flex;gap:14px;align-items:flex-start;margin-bottom:8px}
+.ttime{min-width:118px;font-size:11px;font-weight:600;color:#64748B;text-align:right;padding-top:12px;flex-shrink:0}
+.tline{width:1px;background:#E2E8F0;align-self:stretch;flex-shrink:0}
+.tblk{flex:1;border-radius:8px;padding:10px 14px}
+.tlabel{font-size:14px;font-weight:600;margin-bottom:3px;color:#042C53}
+.tbadge{font-size:11px;margin-left:8px;background:rgba(24,95,165,.13);color:#0C447C;padding:1px 8px;border-radius:999px;font-weight:500}
+.tdesc{font-size:13px;color:#042C53;opacity:.8;line-height:1.6}
+
+/* RULES */
+.rules{margin-top:24px;background:#FCEBEB;border:1px solid #F7C1C1;border-radius:12px;padding:16px}
+.rules-t{font-size:15px;font-weight:600;color:#501313;margin-bottom:12px}
+.rule{display:flex;gap:10px;margin-bottom:8px;font-size:13px;color:#501313;line-height:1.6}
+
+/* TECH GRID */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.tcard{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:14px}
+.ticon{font-size:22px;margin-bottom:8px}
+.tname{font-size:14px;font-weight:600;margin-bottom:4px}
+.tdescr{font-size:13px;color:#64748B;line-height:1.6}
+
+@media(max-width:540px){
+  .spark-steps{grid-template-columns:1fr 1fr}
+  .hdr h1{font-size:19px}
+  .content{padding:16px 14px}
+  .ttime{min-width:80px;font-size:10px}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-label">FS / FEDU · 200 Level · 2025/2026 · Updated Timetable</div>
+  <h1>Optimised Study Timetable — v2</h1>
+  <div class="hdr-sub">Saturday July 4 – Friday July 31, 2026 &nbsp;·&nbsp; 9 courses &nbsp;·&nbsp; Starting from scratch</div>
+  <div class="hdr-stats">
+    <div class="stat"><div class="stat-v">16 days</div><div class="stat-l">prep before exam 1</div></div>
+    <div class="stat"><div class="stat-v">9 courses</div><div class="stat-l">all covered</div></div>
+    <div class="stat"><div class="stat-v">Jul 30 only</div><div class="stat-l">double exam day</div></div>
+    <div class="stat"><div class="stat-v">Jul 31 evening</div><div class="stat-l">CSC 227 — last paper</div></div>
+    <div class="stat"><div class="stat-v">3 free days</div><div class="stat-l">Jul 22, 26, 28</div></div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tbtn on" onclick="showTab('overview',this)">📊 Overview</button>
+  <button class="tbtn" onclick="showTab('method',this)">⚡ SPARK Method</button>
+  <button class="tbtn" onclick="showTab('prep',this)">📚 Prep Phase</button>
+  <button class="tbtn" onclick="showTab('exam',this)">🎯 Exam Phase</button>
+  <button class="tbtn" onclick="showTab('daily',this)">🕐 Daily Schedule</button>
+</div>
+
+<!-- ════════════════ OVERVIEW ════════════════ -->
+<div id="p-overview" class="panel on">
+<div class="content">
+
+  <div class="alert danger">⚠️ <strong>You haven't read anything yet.</strong> 16 days. 9 courses. First exam July 20. This plan is built for exactly that situation — no panic, just execution.</div>
+
+  <div class="sh">All 9 courses — verified and cross-checked</div>
+  <div class="ss">Ordered by exam date. All venues: Auditorium.</div>
+
+  <div class="cgrid">
+    <div class="ccard" style="background:#FAEEDA;border-color:#EF9F27;color:#412402">
+      <div class="cname">TMC 221</div>
+      <div class="cinfo">📅 Mon Jul 20<br>⏰ 3:00 – 4:00 pm<br>📍 Auditorium</div>
+    </div>
+    <div class="ccard" style="background:#E1F5EE;border-color:#1D9E75;color:#04342C">
+      <div class="cname">ENT 221</div>
+      <div class="cinfo">📅 Tue Jul 21<br>⏰ 2:00 – 3:00 pm<br>📍 Auditorium</div>
+    </div>
+    <div class="ccard" style="background:#E6F1FB;border-color:#378ADD;color:#042C53">
+      <div class="cname">CSC 221</div>
+      <div class="cinfo">📅 Thu Jul 23<br>⏰ 11:30 am – 2:30 pm<br>📍 Auditorium</div>
+    </div>
+    <div class="ccard" style="background:#CECBF6;border-color:#534AB7;color:#26215C">
+      <div class="cname">MTH 225 / CSC 228</div>
+      <div class="cinfo">📅 Sat Jul 25<br>⏰ Afternoon<br>📍 Auditorium</div>
+    </div>
+    <div class="ccard" style="background:#EAF3DE;border-color:#639922;color:#173404">
+      <div class="cname">CSC 223</div>
+      <div class="cinfo">📅 Mon Jul 27<br>⏰ 11:30 am – 2:30 pm<br>📍 Auditorium</div>
+    </div>
+    <div class="ccard" style="background:#FBEAF0;border-color:#D4537E;color:#4B1528">
+      <div class="cname">CSC 224</div>
+      <div class="cinfo">📅 Wed Jul 29<br>⏰ 11:30 am – 2:30 pm<br>📍 Auditorium</div>
+    </div>
+    <div class="ccard" style="background:#EEEDFE;border-color:#7F77DD;color:#26215C">
+      <div class="cname">CSC 222</div>
+      <div class="cinfo">📅 Thu Jul 30<br>⏰ 8:00 – 11:00 am<br>📍 Auditorium</div>
+      <div class="cbadge">⚠️ Double day — 8am start</div>
+    </div>
+    <div class="ccard" style="background:#FAECE7;border-color:#D85A30;color:#4A1B0C">
+      <div class="cname">CSC 226</div>
+      <div class="cinfo">📅 Thu Jul 30<br>⏰ 3:00 – 6:00 pm<br>📍 Auditorium</div>
+      <div class="cbadge">⚠️ Double day — afternoon</div>
+    </div>
+    <div class="ccard" style="background:#FCEBEB;border-color:#E24B4A;color:#501313">
+      <div class="cname">CSC 227</div>
+      <div class="cinfo">📅 Fri Jul 31<br>⏰ Evening<br>📍 Auditorium</div>
+      <div class="cbadge">🏁 Last paper of all</div>
+    </div>
+  </div>
+
+  <div class="sh">The 4-phase master plan</div>
+  <div class="ss">How your 28 days are structured end-to-end</div>
+
+  <div class="phase" style="background:#E6F1FB;border-left-color:#185FA5;color:#042C53">
+    <div class="ph-lbl"><div class="ph-name" style="color:#185FA5">Phase 1</div><div class="ph-range" style="color:#185FA5">Jul 4 – 9</div></div>
+    <div><div class="ph-title" style="color:#185FA5">Foundation — first 3 exams</div><div class="ph-desc">2 days each on TMC 221, ENT 221, and CSC 221. Full SPARK method: scan → read → recall → summary card → past Qs. These three exams land on July 20, 21 and 23 — earliest of all.</div></div>
+  </div>
+  <div class="phase" style="background:#EEEDFE;border-left-color:#534AB7;color:#26215C">
+    <div class="ph-lbl"><div class="ph-name" style="color:#534AB7">Phase 2</div><div class="ph-range" style="color:#534AB7">Jul 10 – 15</div></div>
+    <div><div class="ph-title" style="color:#534AB7">Middle block — 3 more courses</div><div class="ph-desc">MTH 225/CSC 228, CSC 223, CSC 224. Jul 10 is a prayer Friday — study starts after. Same SPARK structure. Free exam-phase days (Jul 22, 26, 28) give you intensive re-exposure to each.</div></div>
+  </div>
+  <div class="phase" style="background:#FAECE7;border-left-color:#D85A30;color:#4A1B0C">
+    <div class="ph-lbl"><div class="ph-name" style="color:#D85A30">Phase 3</div><div class="ph-range" style="color:#D85A30">Jul 16 – 19</div></div>
+    <div><div class="ph-title" style="color:#D85A30">Final 3 + full revision</div><div class="ph-desc">CSC 222 (Jul 16), CSC 226 (Jul 17 — prayer Friday, lighter), CSC 227 (Jul 18). Jul 19 is full rapid revision of all 9 courses using only your summary cards. Move fast — trust your prep.</div></div>
+  </div>
+  <div class="phase" style="background:#FCEBEB;border-left-color:#A32D2D;color:#501313">
+    <div class="ph-lbl"><div class="ph-name" style="color:#A32D2D">Phase 4</div><div class="ph-range" style="color:#A32D2D">Jul 20 – 31</div></div>
+    <div><div class="ph-title" style="color:#A32D2D">Exam execution</div><div class="ph-desc">No new material. Each day: morning recap (summary cards only) → write the exam → pivot immediately to the next course. Free days (Jul 22, 26, 28) are intensive review days, not rest days.</div></div>
+  </div>
+
+  <div class="sh" style="margin-top:28px">Critical flags</div>
+  <div class="ss">Things that will hurt you if ignored</div>
+  <div class="alert danger">⚠️ <strong>Thu Jul 30 — DOUBLE exam day:</strong> CSC 222 at 8:00 am and CSC 226 at 3:00 pm. Set multiple alarms for the 8am start. Do not treat these as one paper — they are two separate exams on the same day.</div>
+  <div class="alert warn">🙏 <strong>Prayer Fridays:</strong> Jul 10, Jul 17, Jul 24, and Jul 31 all start with prayer meetings. Study begins after. Jul 31 is also your last exam (CSC 227) in the evening — so that day is: prayer morning → focused CSC 227 review afternoon → exam evening.</div>
+  <div class="alert info">⭐ <strong>Three free exam-phase days — use them fully:</strong> Jul 22 (all day for CSC 221 review), Jul 26 (all day for CSC 223 review), Jul 28 (all day for CSC 224 review). These are not rest days. They are gifts.</div>
+
+</div>
+</div>
+
+<!-- ════════════════ SPARK METHOD ════════════════ -->
+<div id="p-method" class="panel">
+<div class="content">
+
+  <div class="sh">The SPARK Method — built for the lazy reader</div>
+  <div class="ss">Every single study session in this timetable follows this exact 5-step process. No guessing what to do next.</div>
+
+  <div class="alert green">✅ <strong>Why this works even when you don't feel like reading:</strong> SPARK removes all decision-making from your study session. You never ask "what should I do now?" — the next step is always defined. Even on your worst motivation day, you can follow a checklist.</div>
+
+  <div class="spark-grid">
+    <div class="spark-card" style="background:#E6F1FB;border-color:#378ADD;color:#042C53">
+      <div class="spark-letter">S</div>
+      <div class="spark-title">Scan first — never read blind</div>
+      <div class="spark-time">⏱ 10–15 minutes</div>
+      <div class="spark-desc">Before reading a single word — flip through the entire topic. Read only headings, subheadings, bold words, diagrams, and summary boxes. Your brain needs a skeleton before it can hang flesh on it. After scanning, ask yourself: "What is this topic actually about?" Write one sentence answer. Now you're ready to read.</div>
+    </div>
+    <div class="spark-card" style="background:#EAF3DE;border-color:#639922;color:#173404">
+      <div class="spark-letter">P</div>
+      <div class="spark-title">Pomodoro read — 25 minutes on, 5 off</div>
+      <div class="spark-time">⏱ 25 min read · 5 min recall write</div>
+      <div class="spark-desc">Read one sub-topic at a time in 25-minute blocks. At the end of each 25 minutes — close the notes. Do NOT re-read. Instead, on a blank page, write: the 3 most important things you just read. No peeking. This forces your brain to process, not just scan. Then take a 5-minute break. Repeat for the next sub-topic.</div>
+    </div>
+    <div class="spark-card" style="background:#FAEEDA;border-color:#EF9F27;color:#412402">
+      <div class="spark-letter">A</div>
+      <div class="spark-title">Active dump — everything from memory</div>
+      <div class="spark-time">⏱ 20 minutes</div>
+      <div class="spark-desc">After finishing a full topic (all sub-topics done) — close every note. On a blank page, write everything you can remember about the entire topic. No hints, no peeking. Just everything your brain can produce. After the dump, open your notes and circle only the things you missed or got wrong. Those circles are your weak spots — review them specifically next time.</div>
+    </div>
+    <div class="spark-card" style="background:#FCEBEB;border-color:#E24B4A;color:#501313">
+      <div class="spark-letter">R</div>
+      <div class="spark-title">Reduce to a card — compress everything</div>
+      <div class="spark-time">⏱ 15 minutes</div>
+      <div class="spark-desc">Take one blank piece of paper (or phone note). Write the topic name at the top. Underneath, write only the most important points — maximum 10 bullet points. Short. Dense. No sentences unless needed. This is your Summary Card. You will use it every morning and before every exam. The card is the product of each day's study. Guard it.</div>
+    </div>
+    <div class="spark-card" style="background:#EEEDFE;border-color:#7F77DD;color:#26215C">
+      <div class="spark-letter">K</div>
+      <div class="spark-title">Knock out past questions</div>
+      <div class="spark-time">⏱ 45–60 minutes</div>
+      <div class="spark-desc">Attempt past questions related to today's topic. Set a real timer. No notes open during attempt. After the timer ends — mark every answer honestly. For every wrong answer: go back to your notes, find the correct answer, and write a correction note on your summary card. Past questions don't just test you — they teach you the exact format the examiners use. Never skip this step.</div>
+    </div>
+  </div>
+
+  <div class="sh">How SPARK maps to your 10-hour day</div>
+  <div class="ss">Each day you'll run SPARK once or twice depending on the course</div>
+
+  <div style="background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:16px;margin-bottom:20px">
+    <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:#042C53">Single course day (most days)</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">
+      <div style="background:#E6F1FB;border-radius:8px;padding:10px;font-size:12px;color:#042C53"><strong>7:30–7:45am</strong><br>Scan the full topic</div>
+      <div style="background:#EAF3DE;border-radius:8px;padding:10px;font-size:12px;color:#173404"><strong>7:45–12:30pm</strong><br>Pomodoro reads (×4–5 blocks)</div>
+      <div style="background:#FAEEDA;border-radius:8px;padding:10px;font-size:12px;color:#412402"><strong>12:30–1:30pm</strong><br>Lunch break</div>
+      <div style="background:#FAEEDA;border-radius:8px;padding:10px;font-size:12px;color:#412402"><strong>1:30–1:50pm</strong><br>Active dump from memory</div>
+      <div style="background:#FCEBEB;border-radius:8px;padding:10px;font-size:12px;color:#501313"><strong>1:50–2:05pm</strong><br>Build summary card</div>
+      <div style="background:#EEEDFE;border-radius:8px;padding:10px;font-size:12px;color:#26215C"><strong>2:05–3:15pm</strong><br>Past questions + corrections</div>
+      <div style="background:#E6F1FB;border-radius:8px;padding:10px;font-size:12px;color:#042C53"><strong>3:15–3:30pm</strong><br>Break</div>
+      <div style="background:#EAF3DE;border-radius:8px;padding:10px;font-size:12px;color:#173404"><strong>3:30–6:30pm</strong><br>2nd SPARK run (next topic / deep review)</div>
+      <div style="background:#FAEEDA;border-radius:8px;padding:10px;font-size:12px;color:#412402"><strong>6:30–7:15pm</strong><br>Dinner</div>
+      <div style="background:#FAC775;border-radius:8px;padding:10px;font-size:12px;color:#412402"><strong>7:15–9:15pm</strong><br>Evening review — summary cards only</div>
+      <div style="background:#FCEBEB;border-radius:8px;padding:10px;font-size:12px;color:#501313"><strong>9:15–9:45pm</strong><br>Mind dump — close everything, write all you know</div>
+      <div style="background:#F1EFE8;border-radius:8px;padding:10px;font-size:12px;color:#2C2C2A"><strong>10:00pm</strong><br>Sleep — 8 hours, no negotiation</div>
+    </div>
+  </div>
+
+  <div class="alert info">💡 <strong>One lazy-reader rule above everything else:</strong> You do not need to feel motivated to start. You only need to open your notes and do the Scan step (10 minutes). That's all. Nine times out of ten, the momentum from scanning carries you into reading. The enemy is not laziness — it's the blank start. SPARK eliminates the blank start.</div>
+
+</div>
+</div>
+
+<!-- ════════════════ PREP PHASE ════════════════ -->
+<div id="p-prep" class="panel">
+<div class="content">
+
+  <div class="sh">Preparation phase: July 4 – July 19</div>
+  <div class="ss">16 days. Every course gets its time. Tap any day to expand the SPARK plan for that day.</div>
+
+  <!-- PHASE 1 -->
+  <div class="wblk">
+    <div class="whdr">
+      <div><span style="font-size:14px;font-weight:600">Phase 1</span><span style="font-size:12px;opacity:.55;margin-left:10px">Jul 4 – 9</span></div>
+      <span style="font-size:12px;opacity:.7;font-style:italic">TMC 221 → ENT 221 → CSC 221</span>
+    </div>
+    <div class="wbody">
+
+      <!-- Jul 4 -->
+      <div class="drow">
+        <button class="dtrig" onclick="tog(this)">
+          <span class="ddate">Sat Jul 4</span>
+          <span class="dtags"><span class="tag" style="background:#FAEEDA;border-color:#EF9F27;color:#412402">TMC 221</span><span class="tag" style="background:#F0EEE6;border-color:#B4B2A9;color:#2C2C2A">Day 1</span></span>
+          <span class="dchev">▼</span>
+        </button>
+        <div class="ddetail">
+          <div class="spark-steps">
+            <div class="sstep"><div class="sstep-lbl">S · 7:30am</div><div class="sstep-letter" style="color:#185FA5">SCAN</div><div class="sstep-text">Flip through all TMC 221 notes. Read only headings + diagrams. 15 min.</div></div>
+            <div class="sstep"><div class="sstep-lbl">P · 7:45am</div><div class="sstep-letter" style="color:#639922">POMODORO</div><div class="sstep-text">Read topic by topic. 25 min on, 5 min recall-write. Repeat all morning.</div></div>
+            <div class="sstep"><div class="sstep-lbl">A · 1:30pm</div><div class="sstep-letter" style="color:#BA7517">DUMP</div><div class="sstep-text">Close all notes. Write everything you remember. Circle what you missed.</div></div>
+            <div class="sstep"><div class="sstep-lbl">R · 1:50pm</div><div class="sstep-letter" style="color:#A32D2D">CARD</div><div class="sstep-text">Build TMC 221 Summary Card. Max 10 dense bullet points. Label it.</div></div>
+            <div class="sstep"><div class="sstep-lbl">K · 2:05pm</div><div class="sstep-letter" style="color:#534AB7">PAST Qs</div><div class="sstep-text">Attempt past questions. Timer on. Mark honestly. Write corrections on card.</div></div>
+          </div>
+          <div class="tip">💡 <strong>Day 1 rule:</strong> Don't wait to feel ready. Open the notes, do the Scan. That's the only job for the first 15 minutes. The rest follows automatically.</div>
+        </div>
+      </div>
+
+      <!-- Jul 5 -->
+      <div class="drow">
+        <button class="dtrig" onclick="tog(this)">
+          <span class="ddate">Sun Jul 5</span>
+          <span class="dtags"><span class="tag" style="background:#FAEEDA;border-color:#EF9F27;color:#412402">TMC 221</span><span class="tag" style="background:#F0EEE6;border-color:#B4B2A9;color:#2C2C2A">Day 2 — Lock it in</span></span>
+          <span class="dchev">▼</span>
+        </button>
+        <div class="ddetail">
+          <div class="spark-steps">
+            <div class="sstep"><div class="sstep-lbl">Morning</div><div class="sstep-letter" style="color:#185FA5">REVIEW</div><div class="sstep-text">Read yesterday's summary card before opening any new material. 10 min.</div></div>
+            <div class="sstep"><div class="sstep-lbl">AM Block</div><div class="sstep-letter" style="color:#639922">WEAK SPOTS</div><div class="sstep-text">Go back only to the circled (missed) areas from yesterday's dump. Re-read those specifically.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Mid-day</div><div class="sstep-letter" style="color:#BA7517">MOCK TEST</div><div class="sstep-text">Full timed past question session — no notes open. Strict timer. Exam conditions.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Afternoon</div><div class="sstep-letter" style="color:#A32D2D">CORRECT</div><div class="sstep-text">Mark every answer. For every wrong one: find the right answer, add it to your card.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Evening</div><div class="sstep-letter" style="color:#534AB7">FINAL CARD</div><div class="sstep-text">Update summary card with any corrections. Do a final active recall — write from memory. TMC 221 done.</div></div>
+          </div>
+          <div class="tip">💡 <strong>Tip:</strong> Finishing a course in 2 days sounds fast. It is. But 2 deep focused days of SPARK beats 5 passive re-reading days every single time. Trust the method.</div>
+        </div>
+      </div>
+
+      <!-- Jul 6 -->
+      <div class="drow">
+        <button class="dtrig" onclick="tog(this)">
+          <span class="ddate">Mon Jul 6</span>
+          <span class="dtags"><span class="tag" style="background:#E1F5EE;border-color:#1D9E75;color:#04342C">ENT 221</span><span class="tag" style="background:#F0EEE6;border-color:#B4B2A9;color:#2C2C2A">Day 1</span></span>
+          <span class="dchev">▼</span>
+        </button>
+        <div class="ddetail">
+          <div class="spark-steps">
+            <div class="sstep"><div class="sstep-lbl">S · 7:30am</div><div class="sstep-letter" style="color:#185FA5">SCAN</div><div class="sstep-text">Scan all ENT 221 notes. Headings, diagrams, bold text only. Build mental map.</div></div>
+            <div class="sstep"><div class="sstep-lbl">P · 7:45am</div><div class="sstep-letter" style="color:#639922">POMODORO</div><div class="sstep-text">ENT 221 is theory-heavy. Use mind maps for each topic — draw connections, not lists.</div></div>
+            <div class="sstep"><div class="sstep-lbl">A · 1:30pm</div><div class="sstep-letter" style="color:#BA7517">DUMP</div><div class="sstep-text">Full memory dump on a blank page. Circle what you couldn't recall.</div></div>
+            <div class="sstep"><div class="sstep-lbl">R · 1:50pm</div><div class="sstep-letter" style="color:#A32D2D">CARD</div><div class="sstep-text">Build ENT 221 Summary Card. Theory-heavy means fewer formulas, more definitions — compress them hard.</div></div>
+            <div class="sstep"><div class="sstep-lbl">K · 2:05pm</div><div class="sstep-letter" style="color:#534AB7">PAST Qs</div><div class="sstep-text">Attempt past questions. Timer. Mark. Correct. Update card.</div></div>
+          </div>
+          <div class="tip">💡 <strong>Tip:</strong> ENT 221 and TMC 221 are your first two exams. They land July 20 and 21 back-to-back. The work you do today is exam-day confidence.</div>
+        </div>
+      </div>
+
+      <!-- Jul 7 -->
+      <div class="drow">
+        <button class="dtrig" onclick="tog(this)">
+          <span class="ddate">Tue Jul 7</span>
+          <span class="dtags"><span class="tag" style="background:#E1F5EE;border-color:#1D9E75;color:#04342C">ENT 221</span><span class="tag" style="background:#F0EEE6;border-color:#B4B2A9;color:#2C2C2A">Day 2 — Lock it in</span></span>
+          <span class="dchev">▼</span>
+        </button>
+        <div class="ddetail">
+          <div class="spark-steps">
+            <div class="sstep"><div class="sstep-lbl">Morning</div><div class="sstep-letter" style="color:#185FA5">REVIEW</div><div class="sstep-text">ENT 221 summary card + TMC 221 card quick scan. 15 min total.</div></div>
+            <div class="sstep"><div class="sstep-lbl">AM Block</div><div class="sstep-letter" style="color:#639922">WEAK SPOTS</div><div class="sstep-text">Revisit only circled/missed areas from yesterday. Deep read those points only.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Mid-day</div><div class="sstep-letter" style="color:#BA7517">MOCK TEST</div><div class="sstep-text">Timed full past question session. No notes. Exam conditions.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Afternoon</div><div class="sstep-letter" style="color:#A32D2D">CORRECT</div><div class="sstep-text">Mark every answer. Every wrong answer = correction added to summary card.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Evening</div><div class="sstep-letter" style="color:#534AB7">FINAL CARD</div><div class="sstep-text">Final card update + active recall. ENT 221 done. 2 courses complete in 4 days.</div></div>
+          </div>
+          <div class="tip">💡 <strong>Tip:</strong> You've now covered the 2 shortest exams (1-hour papers). From here every exam is longer. Momentum is your biggest asset — don't lose it overnight.</div>
+        </div>
+      </div>
+
+      <!-- Jul 8 -->
+      <div class="drow">
+        <button class="dtrig" onclick="tog(this)">
+          <span class="ddate">Wed Jul 8</span>
+          <span class="dtags"><span class="tag" style="background:#E6F1FB;border-color:#378ADD;color:#042C53">CSC 221</span><span class="tag" style="background:#F0EEE6;border-color:#B4B2A9;color:#2C2C2A">Day 1</span></span>
+          <span class="dchev">▼</span>
+        </button>
+        <div class="ddetail">
+          <div class="spark-steps">
+            <div class="sstep"><div class="sstep-lbl">S · 7:30am</div><div class="sstep-letter" style="color:#185FA5">SCAN</div><div class="sstep-text">Scan all CSC 221 notes. Is this course theory-heavy, code-heavy, or formula-heavy? Identify it now.</div></div>
+            <div class="sstep"><div class="sstep-lbl">P · 7:45am</div><div class="sstep-letter" style="color:#639922">POMODORO</div><div class="sstep-text">25-min Pomodoro reads. For code/formulas: write them out by hand after each block, not just re-read.</div></div>
+            <div class="sstep"><div class="sstep-lbl">A · 1:30pm</div><div class="sstep-letter" style="color:#BA7517">DUMP</div><div class="sstep-text">Blank page memory dump. Circle gaps.</div></div>
+            <div class="sstep"><div class="sstep-lbl">R · 1:50pm</div><div class="sstep-letter" style="color:#A32D2D">CARD</div><div class="sstep-text">Build CSC 221 summary card. Flag any topics that still feel shaky — mark them with a star.</div></div>
+            <div class="sstep"><div class="sstep-lbl">K · 2:05pm</div><div class="sstep-letter" style="color:#534AB7">PAST Qs</div><div class="sstep-text">Attempt past questions. Mark. Correct. Update card.</div></div>
+          </div>
+          <div class="tip">💡 <strong>Tip:</strong> CSC 221 exam is July 23. You have a free day on July 22 dedicated entirely to CSC 221 review. So today is the foundation — lay it properly.</div>
+        </div>
+      </div>
+
+      <!-- Jul 9 -->
+      <div class="drow">
+        <button class="dtrig" onclick="tog(this)">
+          <span class="ddate">Thu Jul 9</span>
+          <span class="dtags"><span class="tag" style="background:#E6F1FB;border-color:#378ADD;color:#042C53">CSC 221</span><span class="tag" style="background:#F0EEE6;border-color:#B4B2A9;color:#2C2C2A">Day 2 — Lock it in</span></span>
+          <span class="dchev">▼</span>
+        </button>
+        <div class="ddetail">
+          <div class="spark-steps">
+            <div class="sstep"><div class="sstep-lbl">Morning</div><div class="sstep-letter" style="color:#185FA5">REVIEW</div><div class="sstep-text">CSC 221 card + quick scan of TMC + ENT cards. Keep all three warm.</div></div>
+            <div class="sstep"><div class="sstep-lbl">AM Block</div><div class="sstep-letter" style="color:#639922">WEAK SPOTS</div><div class="sstep-text">Only the starred (shaky) topics from yesterday's card. Deep-read those. Nothing else.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Mid-day</div><div class="sstep-letter" style="color:#BA7517">MOCK TEST</div><div class="sstep-text">Full timed mock. No notes. Strict timer. Exam conditions.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Afternoon</div><div class="sstep-letter" style="color:#A32D2D">CORRECT</div><div class="sstep-text">Mark honestly. Write corrections. Remove stars from topics you now feel solid on.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Evening</div><div class="sstep-letter" style="color:#534AB7">FINAL CARD</div><div class="sstep-text">Final CSC 221 card update. Active recall. Course done. 3 of 9 complete.</div></div>
+          </div>
+          <div class="tip">💡 <strong>Tip:</strong> 3 courses in 6 days from a zero-start. Most students do this in the last 2 days before the exam. You are already in a completely different category.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="wblk">
+    <div class="whdr">
+      <div><span style="font-size:14px;font-weight:600">Phase 2</span><span style="font-size:12px;opacity:.55;margin-left:10px">Jul 10 – 15</span></div>
+      <span style="font-size:12px;opacity:.7;font-style:italic">MTH 225/CSC 228 → CSC 223 → CSC 224</span>
+    </div>
+    <div class="wbody">
+
+      <!-- Jul 10 -->
+      <div class="drow">
+        <button class="dtrig" onclick="tog(this)">
+          <span class="ddate">Fri Jul 10</span>
+          <span class="dtags"><span class="tag" style="background:#CECBF6;border-color:#534AB7;color:#26215C">MTH 225/CSC 228</span><span class="tag" style="background:#FAEEDA;border-color:#EF9F27;color:#412402">⚡ Prayer Friday</span></span>
+          <span class="dchev">▼</span>
+        </button>
+        <div class="ddetail">
+          <div class="spark-steps">
+            <div class="sstep"><div class="sstep-lbl">Morning</div><div class="sstep-letter" style="color:#412402">PRAYER</div><div class="sstep-text">Prayer meeting. No study. Return focused.</div></div>
+            <div class="sstep"><div class="sstep-lbl">After prayer</div><div class="sstep-letter" style="color:#185FA5">SCAN</div><div class="sstep-text">Scan all MTH 225/CSC 228 notes immediately on return. Identify all formulas and algorithms upfront.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Afternoon</div><div class="sstep-letter" style="color:#639922">POMODORO</div><div class="sstep-text">25-min Pomodoro blocks. For maths: write out every formula + worked example by hand. Never just read maths.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Late PM</div><div class="sstep-letter" style="color:#BA7517">DUMP</div><div class="sstep-text">Memory dump. Which formulas can you write from scratch? Circle the ones you can't.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Evening</div><div class="sstep-letter" style="color:#A32D2D">CARD</div><div class="sstep-text">Build MTH 225/CSC 228 card — this card is mostly formulas and worked examples, not text.</div></div>
+          </div>
+          <div class="tip">💡 <strong>Maths rule:</strong> If you can't write the formula from memory and solve a problem with it — you don't know it yet. Seeing it in notes is not the same as knowing it. Practice until automatic.</div>
+        </div>
+      </div>
+
+      <!-- Jul 11 -->
+      <div class="drow">
+        <button class="dtrig" onclick="tog(this)">
+          <span class="ddate">Sat Jul 11</span>
+          <span class="dtags"><span class="tag" style="background:#CECBF6;border-color:#534AB7;color:#26215C">MTH 225/CSC 228</span><span class="tag" style="background:#F0EEE6;border-color:#B4B2A9;color:#2C2C2A">Day 2 — Lock it in</span></span>
+          <span class="dchev">▼</span>
+        </button>
+        <div class="ddetail">
+          <div class="spark-steps">
+            <div class="sstep"><div class="sstep-lbl">Morning</div><div class="sstep-letter" style="color:#185FA5">FORMULA DRILL</div><div class="sstep-text">Cover your card. Write every formula from memory. Check. Repeat the ones you missed.</div></div>
+            <div class="sstep"><div class="sstep-lbl">AM Block</div><div class="sstep-letter" style="color:#639922">WORKED EXAMPLES</div><div class="sstep-text">Solve every worked example in your notes without looking at the solution first. Then compare.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Mid-day</div><div class="sstep-letter" style="color:#BA7517">MOCK TEST</div><div class="sstep-text">Full past question mock. Timer on. No notes.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Afternoon</div><div class="sstep-letter" style="color:#A32D2D">CORRECT</div><div class="sstep-text">Mark every answer. Every step counts in maths. Identify where exactly each solution went wrong.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Evening</div><div class="sstep-letter" style="color:#534AB7">FINAL CARD</div><div class="sstep-text">Final formula card update. 4 of 9 complete.</div></div>
+          </div>
+          <div class="tip">💡 <strong>Tip:</strong> MTH 225/CSC 228 is a solo exam on July 25 (not a double day anymore). That's an advantage. Give it everything today.</div>
+        </div>
+      </div>
+
+      <!-- Jul 12 -->
+      <div class="drow">
+        <button class="dtrig" onclick="tog(this)">
+          <span class="ddate">Sun Jul 12</span>
+          <span class="dtags"><span class="tag" style="background:#EAF3DE;border-color:#639922;color:#173404">CSC 223</span><span class="tag" style="background:#F0EEE6;border-color:#B4B2A9;color:#2C2C2A">Day 1</span></span>
+          <span class="dchev">▼</span>
+        </button>
+        <div class="ddetail">
+          <div class="spark-steps">
+            <div class="sstep"><div class="sstep-lbl">S · 7:30am</div><div class="sstep-letter" style="color:#185FA5">SCAN</div><div class="sstep-text">Scan all CSC 223 notes. Map the topics. Spot where it overlaps with CSC 221 — note it.</div></div>
+            <div class="sstep"><div class="sstep-lbl">P · 7:45am</div><div class="sstep-letter" style="color:#639922">POMODORO</div><div class="sstep-text">25-min Pomodoro reads. Use any CSC 221 connection to anchor new understanding.</div></div>
+            <div class="sstep"><div class="sstep-lbl">A · 1:30pm</div><div class="sstep-letter" style="color:#BA7517">DUMP</div><div class="sstep-text">Full memory dump. Circle missed points.</div></div>
+            <div class="sstep"><div class="sstep-lbl">R · 1:50pm</div><div class="sstep-letter" style="color:#A32D2D">CARD</div><div class="sstep-text">Build CSC 223 summary card. Star shaky topics.</div></div>
+            <div class="sstep"><div class="sstep-lbl">K · 2:05pm</div><div class="sstep-letter" style="color:#534AB7">PAST Qs</div><div class="sstep-text">Past questions. Timer. Mark. Correct. Update card.</div></div>
+          </div>
+          <div class="tip">💡 <strong>Free day benefit:</strong> CSC 223 exam is July 27 — you have a free day on July 26 for intensive review. Today's work + that free day = full coverage.</div>
+        </div>
+      </div>
+
+      <!-- Jul 13 -->
+      <div class="drow">
+        <button class="dtrig" onclick="tog(this)">
+          <span class="ddate">Mon Jul 13</span>
+          <span class="dtags"><span class="tag" style="background:#EAF3DE;border-color:#639922;color:#173404">CSC 223</span><span class="tag" style="background:#F0EEE6;border-color:#B4B2A9;color:#2C2C2A">Day 2 — Lock it in</span></span>
+          <span class="dchev">▼</span>
+        </button>
+        <div class="ddetail">
+          <div class="spark-steps">
+            <div class="sstep"><div class="sstep-lbl">Morning</div><div class="sstep-letter" style="color:#185FA5">REVIEW</div><div class="sstep-text">CSC 223 card + quick scan of previous cards. 15 min.</div></div>
+            <div class="sstep"><div class="sstep-lbl">AM Block</div><div class="sstep-letter" style="color:#639922">WEAK SPOTS</div><div class="sstep-text">Starred topics from yesterday. Deep read those only.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Mid-day</div><div class="sstep-letter" style="color:#BA7517">MOCK TEST</div><div class="sstep-text">Full timed mock. Exam conditions.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Afternoon</div><div class="sstep-letter" style="color:#A32D2D">CORRECT</div><div class="sstep-text">Mark every answer. Add corrections to card. Remove stars from solid topics.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Evening</div><div class="sstep-letter" style="color:#534AB7">FINAL CARD</div><div class="sstep-text">Final card update. Active recall. CSC 223 done. 5 of 9.</div></div>
+          </div>
+          <div class="tip">💡 <strong>Tip:</strong> Halfway. 5 of 9 courses covered by July 13. You're a week ahead of where most students will be on July 19.</div>
+        </div>
+      </div>
+
+      <!-- Jul 14 -->
+      <div class="drow">
+        <button class="dtrig" onclick="tog(this)">
+          <span class="ddate">Tue Jul 14</span>
+          <span class="dtags"><span class="tag" style="background:#FBEAF0;border-color:#D4537E;color:#4B1528">CSC 224</span><span class="tag" style="background:#F0EEE6;border-color:#B4B2A9;color:#2C2C2A">Day 1</span></span>
+          <span class="dchev">▼</span>
+        </button>
+        <div class="ddetail">
+          <div class="spark-steps">
+            <div class="sstep"><div class="sstep-lbl">S · 7:30am</div><div class="sstep-letter" style="color:#185FA5">SCAN</div><div class="sstep-text">Scan all CSC 224 notes. Identify whether it's theoretical, applied, or algorithmic.</div></div>
+            <div class="sstep"><div class="sstep-lbl">P · 7:45am</div><div class="sstep-letter" style="color:#639922">POMODORO</div><div class="sstep-text">Pomodoro reads. 25 on, 5 recall-write. Full morning.</div></div>
+            <div class="sstep"><div class="sstep-lbl">A · 1:30pm</div><div class="sstep-letter" style="color:#BA7517">DUMP</div><div class="sstep-text">Full memory dump. Circle gaps.</div></div>
+            <div class="sstep"><div class="sstep-lbl">R · 1:50pm</div><div class="sstep-letter" style="color:#A32D2D">CARD</div><div class="sstep-text">Build CSC 224 summary card. Star weak areas.</div></div>
+            <div class="sstep"><div class="sstep-lbl">K · 2:05pm</div><div class="sstep-letter" style="color:#534AB7">PAST Qs</div><div class="sstep-text">Past questions. Timer. Mark. Correct. Update card.</div></div>
+          </div>
+          <div class="tip">💡 <strong>Free day advantage:</strong> CSC 224 exam is July 29. Free day July 28 is entirely dedicated to CSC 224 intensive review. Today builds the foundation for that day.</div>
+        </div>
+      </div>
+
+      <!-- Jul 15 -->
+      <div class="drow">
+        <button class="dtrig" onclick="tog(this)">
+          <span class="ddate">Wed Jul 15</span>
+          <span class="dtags"><span class="tag" style="background:#FBEAF0;border-color:#D4537E;color:#4B1528">CSC 224</span><span class="tag" style="background:#F0EEE6;border-color:#B4B2A9;color:#2C2C2A">Day 2 — Lock it in</span></span>
+          <span class="dchev">▼</span>
+        </button>
+        <div class="ddetail">
+          <div class="spark-steps">
+            <div class="sstep"><div class="sstep-lbl">Morning</div><div class="sstep-letter" style="color:#185FA5">REVIEW</div><div class="sstep-text">CSC 224 card + scan of all previous cards. Keep everything warm.</div></div>
+            <div class="sstep"><div class="sstep-lbl">AM Block</div><div class="sstep-letter" style="color:#639922">WEAK SPOTS</div><div class="sstep-text">Starred topics only. Focused re-read.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Mid-day</div><div class="sstep-letter" style="color:#BA7517">MOCK TEST</div><div class="sstep-text">Timed mock. No notes. Exam conditions.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Afternoon</div><div class="sstep-letter" style="color:#A32D2D">CORRECT</div><div class="sstep-text">Mark. Correct. Update card.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Evening</div><div class="sstep-letter" style="color:#534AB7">FINAL CARD</div><div class="sstep-text">Final CSC 224 card update. Active recall. 6 of 9 done.</div></div>
+          </div>
+          <div class="tip">💡 <strong>Tip:</strong> 6 of 9 courses complete with 4 days still left in prep. That is not normal. That's what showing up on day 1 buys you.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="wblk">
+    <div class="whdr">
+      <div><span style="font-size:14px;font-weight:600">Phase 3</span><span style="font-size:12px;opacity:.55;margin-left:10px">Jul 16 – 19</span></div>
+      <span style="font-size:12px;opacity:.7;font-style:italic">CSC 222 → CSC 226 → CSC 227 → Full revision</span>
+    </div>
+    <div class="wbody">
+
+      <!-- Jul 16 -->
+      <div class="drow">
+        <button class="dtrig" onclick="tog(this)">
+          <span class="ddate">Thu Jul 16</span>
+          <span class="dtags"><span class="tag" style="background:#EEEDFE;border-color:#7F77DD;color:#26215C">CSC 222</span><span class="tag" style="background:#F0EEE6;border-color:#B4B2A9;color:#2C2C2A">Full SPARK day</span></span>
+          <span class="dchev">▼</span>
+        </button>
+        <div class="ddetail">
+          <div class="spark-steps">
+            <div class="sstep"><div class="sstep-lbl">S · 7:30am</div><div class="sstep-letter" style="color:#185FA5">SCAN</div><div class="sstep-text">Scan all CSC 222 notes. CSC 222 is your 8am exam on July 30 — it gets morning brain. Study with that urgency.</div></div>
+            <div class="sstep"><div class="sstep-lbl">P · 7:45am</div><div class="sstep-letter" style="color:#639922">POMODORO</div><div class="sstep-text">25-min Pomodoro reads all morning. Recall-write after each block.</div></div>
+            <div class="sstep"><div class="sstep-lbl">A · 1:30pm</div><div class="sstep-letter" style="color:#BA7517">DUMP</div><div class="sstep-text">Full memory dump. Circle missed points. Flag difficult areas in red.</div></div>
+            <div class="sstep"><div class="sstep-lbl">R · 1:50pm</div><div class="sstep-letter" style="color:#A32D2D">CARD</div><div class="sstep-text">Build CSC 222 summary card. This is the 8am exam — the card must be bulletproof.</div></div>
+            <div class="sstep"><div class="sstep-lbl">K · 2:05pm</div><div class="sstep-letter" style="color:#534AB7">PAST Qs</div><div class="sstep-text">Past questions. Timed mock. Mark. Correct. Update card. Evening: mock test 2nd round.</div></div>
+          </div>
+          <div class="tip">💡 <strong>Important:</strong> CSC 222 and CSC 226 are both on July 30. CSC 222 at 8am, CSC 226 at 3pm. Today's job is CSC 222 — tomorrow is CSC 226. Treat them as separate courses on separate days.</div>
+        </div>
+      </div>
+
+      <!-- Jul 17 -->
+      <div class="drow">
+        <button class="dtrig" onclick="tog(this)">
+          <span class="ddate">Fri Jul 17</span>
+          <span class="dtags"><span class="tag" style="background:#FAECE7;border-color:#D85A30;color:#4A1B0C">CSC 226</span><span class="tag" style="background:#FAEEDA;border-color:#EF9F27;color:#412402">⚡ Prayer Friday</span></span>
+          <span class="dchev">▼</span>
+        </button>
+        <div class="ddetail">
+          <div class="spark-steps">
+            <div class="sstep"><div class="sstep-lbl">Morning</div><div class="sstep-letter" style="color:#412402">PRAYER</div><div class="sstep-text">Prayer meeting. Return focused and intentional.</div></div>
+            <div class="sstep"><div class="sstep-lbl">After prayer</div><div class="sstep-letter" style="color:#185FA5">SCAN</div><div class="sstep-text">Immediately scan all CSC 226 notes on return. No delay.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Afternoon</div><div class="sstep-letter" style="color:#639922">POMODORO</div><div class="sstep-text">Reduced hours today — use them with zero waste. Every 25-min block counts.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Late PM</div><div class="sstep-letter" style="color:#BA7517">DUMP + CARD</div><div class="sstep-text">Memory dump + build CSC 226 summary card. CSC 226 is the 3pm exam on July 30 — card must be solid.</div></div>
+            <div class="sstep"><div class="sstep-lbl">Evening</div><div class="sstep-letter" style="color:#534AB7">PAST Qs</div><div class="sstep-text">Past questions. Mark. Correct. End with 30-min CSC 222 revisit — keep it warm.</div></div>
+          </div>
+          <div class="tip">💡 <strong>Tip:</strong> Prayer Fridays are shorter study days — not zero study days. Even 5 solid hours after prayer is enough to cover the essentials. Don't write off the afternoon.</div>
+        </div>
+      </div>
+
+      <!-- Jul 18 -->
+      <div class="drow">
+        <button class="dtrig" onclick="tog(this)">
+          <span class="ddate">Sat Jul 18</span>
+          <span class="dtags"><span class="tag" style="background:#FCEBEB;border-color:#E24B4A;color:#501313">CSC 227</span><span class="tag" style="background:#F0EEE6;border-color:#B4B2A9;color:#2C2C2A">Full SPARK day</span></span>
+          <span class="dchev">▼</span>
+        </button>
+        <div class="ddetail">
+          <div class="spark-steps">
+            <div class="sstep"><div class="sstep-lbl">S · 7:30am</div><div class="sstep-letter" style="color:#185FA5">SCAN</div><div class="sstep-text">Scan all CSC 227 notes. This is the LAST exam of all — July 31 evening. You have the most time for this one.</div></div>
+            <div class="sstep"><div class="sstep-lbl">P · 7:45am</div><div class="sstep-letter" style="color:#639922">POMODORO</div><div class="sstep-text">Full morning Pomodoro reads. After each 25-min block: recall-write 3 key points.</div></div>
+            <div class="sstep"><div class="sstep-lbl">A · 1:30pm</div><div class="sstep-letter" style="color:#BA7517">DUMP</div><div class="sstep-text">Full memory dump. Circle gaps.</div></div>
+            <div class="sstep"><div class="sstep-lbl">R · 1:50pm</div><div class="sstep-letter" style="color:#A32D2D">CARD</div><div class="sstep-text">Build CSC 227 summary card. This card will be reviewed the morning of July 31.</div></div>
+            <div class="sstep"><div class="sstep-lbl">K · 2:05pm</div><div class="sstep-letter" style="color:#534AB7">PAST Qs</div><div class="sstep-text">Past questions. Timed. Mark. Correct. Update card. Evening: CSC 222 + CSC 226 quick revisit (30 min each).</div></div>
+          </div>
+          <div class="tip">💡 <strong>Tip:</strong> 8 of 9 courses now covered. Tomorrow is full revision day. The hard part is done.</div>
+        </div>
+      </div>
+
+      <!-- Jul 19 -->
+      <div class="drow">
+        <button class="dtrig" onclick="tog(this)">
+          <span class="ddate">Sun Jul 19</span>
+          <span class="dtags"><span class="tag" style="background:#FAC775;border-color:#BA7517;color:#412402">FULL REVISION</span><span class="tag" style="background:#F0EEE6;border-color:#B4B2A9;color:#2C2C2A">All 9 courses</span></span>
+          <span class="dchev">▼</span>
+        </button>
+        <div class="ddetail">
+          <div class="spark-steps">
+            <div class="sstep"><div class="sstep-lbl">7:30–9am</div><div class="sstep-letter" style="color:#412402">TMC 221</div><div class="sstep-text">Summary card only. Read → cover → recall. Update any weak spots.</div></div>
+            <div class="sstep"><div class="sstep-lbl">9–10:30am</div><div class="sstep-letter" style="color:#04342C">ENT 221</div><div class="sstep-text">Summary card only. Same process.</div></div>
+            <div class="sstep"><div class="sstep-lbl">10:30am–12pm</div><div class="sstep-letter" style="color:#042C53">CSC 221</div><div class="sstep-text">Summary card only. Flag any remaining weak points.</div></div>
+            <div class="sstep"><div class="sstep-lbl">1–2:30pm</div><div class="sstep-letter" style="color:#26215C">MTH 225</div><div class="sstep-text">Formula card drill. Write each formula from memory. Check.</div></div>
+            <div class="sstep"><div class="sstep-lbl">2:30–4pm</div><div class="sstep-letter" style="color:#173404">CSC 223</div><div class="sstep-text">Card. Recall. Flag gaps.</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0 10px">
+            <div class="sstep"><div class="sstep-lbl">4–5pm</div><div class="sstep-letter" style="color:#4B1528">CSC 224</div><div class="sstep-text">Card. Recall.</div></div>
+            <div class="sstep"><div class="sstep-lbl">5–6pm</div><div class="sstep-letter" style="color:#26215C">CSC 222</div><div class="sstep-text">Card. Recall. 8am exam tomorrow.</div></div>
+            <div class="sstep"><div class="sstep-lbl">6–7pm</div><div class="sstep-letter" style="color:#4A1B0C">CSC 226 + CSC 227</div><div class="sstep-text">Quick card scans only. Light.</div></div>
+          </div>
+          <div class="tip">💡 <strong>The golden rule for today:</strong> No new material. Summary cards only. You are cementing, not learning. Pack your bag tonight. Eat properly. Sleep by 9:30pm. First exam is tomorrow at 3pm — but TMC 221 prep starts in the morning.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════════ EXAM PHASE ════════════════ -->
+<div id="p-exam" class="panel">
+<div class="content">
+
+  <div class="sh">Exam phase: July 20 – July 31</div>
+  <div class="ss">No new material from this point. Recap → write → pivot. Every day.</div>
+
+  <div class="alert danger">⚠️ <strong>Double day — Thu Jul 30:</strong> CSC 222 at 8:00 am and CSC 226 at 3:00 pm. Set multiple alarms the night before. CSC 222 is your first morning exam. Never miss an 8am paper.</div>
+  <div class="alert warn">🙏 <strong>Jul 31 — Prayer + Last Exam:</strong> Prayer morning → focused CSC 227 review afternoon → CSC 227 exam evening. Do NOT stay up all night before. Rest is part of the execution.</div>
+
+  <div class="ecard">
+    <div class="ehdr" style="background:#412402">
+      <span class="edate">Mon Jul 20</span>
+      <span class="epills"><span class="epill">TMC 221 · 3:00 – 4:00 pm</span></span>
+    </div>
+    <div class="ebody">
+      <div class="enext"><div class="enext-l">Tonight → review</div><div class="enext-v">ENT 221 summary card</div></div>
+      <div class="estrat"><div class="estrat-l">Execution plan</div><div class="estrat-t">Morning: TMC 221 card recap only — no new material. Arrive at the auditorium 30 min early. Post-exam: 90 min ENT 221 card review, then rest. Tomorrow's exam is at 2pm.</div></div>
+    </div>
+  </div>
+
+  <div class="ecard">
+    <div class="ehdr" style="background:#04342C">
+      <span class="edate">Tue Jul 21</span>
+      <span class="epills"><span class="epill">ENT 221 · 2:00 – 3:00 pm</span></span>
+    </div>
+    <div class="ebody">
+      <div class="enext"><div class="enext-l">Tonight → review</div><div class="enext-v">CSC 221 — intensive (free day tomorrow)</div></div>
+      <div class="estrat"><div class="estrat-l">Execution plan</div><div class="estrat-t">Morning: ENT 221 card recap. Post-exam: Begin CSC 221 intensive review. You have a full free day tomorrow to continue — use tonight to restart momentum.</div></div>
+    </div>
+  </div>
+
+  <div class="ecard">
+    <div class="ehdr" style="background:#085041">
+      <span class="edate">Wed Jul 22 ⭐</span>
+      <span class="epills"><span class="epill">Free day — no exam</span></span>
+    </div>
+    <div class="ebody">
+      <div class="enext"><div class="enext-l">Full day focus</div><div class="enext-v" style="color:#085041">CSC 221 — exam tomorrow</div></div>
+      <div class="estrat"><div class="estrat-l">Execution plan</div><div class="estrat-t">Full SPARK review on CSC 221. Past questions, mock test, corrections. This day is not rest — it is your final intensive before a 3-hour exam. Use every hour.</div></div>
+    </div>
+  </div>
+
+  <div class="ecard">
+    <div class="ehdr" style="background:#042C53">
+      <span class="edate">Thu Jul 23</span>
+      <span class="epills"><span class="epill">CSC 221 · 11:30 am – 2:30 pm</span></span>
+    </div>
+    <div class="ebody">
+      <div class="enext"><div class="enext-l">Tonight → review</div><div class="enext-v">MTH 225/CSC 228 (exam Sat)</div></div>
+      <div class="estrat"><div class="estrat-l">Execution plan</div><div class="estrat-t">Morning: CSC 221 card recap only. Post-exam: MTH 225/CSC 228 formula card drill and past questions (2–3 hours). Prayer meeting Friday morning — study resumes after.</div></div>
+    </div>
+  </div>
+
+  <div class="ecard">
+    <div class="ehdr" style="background:#3C3489">
+      <span class="edate">Fri Jul 24</span>
+      <span class="epills"><span class="epill">🙏 Prayer morning</span><span class="epill">MTH 225/CSC 228 intensive afternoon</span></span>
+    </div>
+    <div class="ebody">
+      <div class="enext"><div class="enext-l">Exam tomorrow</div><div class="enext-v">MTH 225/CSC 228 · afternoon</div></div>
+      <div class="estrat"><div class="estrat-l">Execution plan</div><div class="estrat-t">After prayer: full afternoon on MTH 225/CSC 228. Formula drills, worked examples, past questions. Do not stay up late tonight. Sleep is revision.</div></div>
+    </div>
+  </div>
+
+  <div class="ecard">
+    <div class="ehdr" style="background:#26215C">
+      <span class="edate">Sat Jul 25</span>
+      <span class="epills"><span class="epill">MTH 225/CSC 228 · afternoon</span></span>
+    </div>
+    <div class="ebody">
+      <div class="enext"><div class="enext-l">Tonight → review</div><div class="enext-v">CSC 223 (free day tomorrow)</div></div>
+      <div class="estrat"><div class="estrat-l">Execution plan</div><div class="estrat-t">Morning: formula card recap only. Post-exam: start CSC 223 review — free day tomorrow to go deep. Light recap tonight, heavy work tomorrow.</div></div>
+    </div>
+  </div>
+
+  <div class="ecard">
+    <div class="ehdr" style="background:#085041">
+      <span class="edate">Sun Jul 26 ⭐</span>
+      <span class="epills"><span class="epill">Free day — no exam</span></span>
+    </div>
+    <div class="ebody">
+      <div class="enext"><div class="enext-l">Full day focus</div><div class="enext-v" style="color:#085041">CSC 223 — exam tomorrow</div></div>
+      <div class="estrat"><div class="estrat-l">Execution plan</div><div class="estrat-t">Full SPARK review on CSC 223. Past questions, mock test, corrections. Same execution as July 22. The pattern works — trust it.</div></div>
+    </div>
+  </div>
+
+  <div class="ecard">
+    <div class="ehdr" style="background:#173404">
+      <span class="edate">Mon Jul 27</span>
+      <span class="epills"><span class="epill">CSC 223 · 11:30 am – 2:30 pm</span></span>
+    </div>
+    <div class="ebody">
+      <div class="enext"><div class="enext-l">Tonight → review</div><div class="enext-v">CSC 224 (free day tomorrow)</div></div>
+      <div class="estrat"><div class="estrat-l">Execution plan</div><div class="estrat-t">Morning: CSC 223 card recap only. Post-exam: CSC 224 summary card review and light past questions. Free day tomorrow to go intensive.</div></div>
+    </div>
+  </div>
+
+  <div class="ecard">
+    <div class="ehdr" style="background:#085041">
+      <span class="edate">Tue Jul 28 ⭐</span>
+      <span class="epills"><span class="epill">Free day — no exam</span></span>
+    </div>
+    <div class="ebody">
+      <div class="enext"><div class="enext-l">Full day focus</div><div class="enext-v" style="color:#085041">CSC 224 — exam tomorrow</div></div>
+      <div class="estrat"><div class="estrat-l">Execution plan</div><div class="estrat-t">Full SPARK review on CSC 224. Past questions, mock test, corrections. You've done this drill three times now. Execute without hesitation.</div></div>
+    </div>
+  </div>
+
+  <div class="ecard">
+    <div class="ehdr" style="background:#831843">
+      <span class="edate">Wed Jul 29</span>
+      <span class="epills"><span class="epill">CSC 224 · 11:30 am – 2:30 pm</span></span>
+    </div>
+    <div class="ebody">
+      <div class="enext"><div class="enext-l">Tonight → split review</div><div class="enext-v">CSC 222 (3 hrs) · CSC 226 (2 hrs)</div></div>
+      <div class="estrat"><div class="estrat-l">Execution plan</div><div class="estrat-t">Morning: CSC 224 card only. Post-exam: CSC 222 gets 3 hours (8am exam tomorrow — priority). CSC 226 gets 2 hours. Sleep by 9:30pm. Set multiple alarms for 6am.</div></div>
+    </div>
+  </div>
+
+  <div class="ecard">
+    <div class="ehdr" style="background:#791F1F">
+      <span class="edate">Thu Jul 30 ⚠️ DOUBLE DAY</span>
+      <span class="epills"><span class="epill">CSC 222 · 8:00 – 11:00 am</span><span class="epill">CSC 226 · 3:00 – 6:00 pm</span></span>
+    </div>
+    <div class="ebody">
+      <div class="enext"><div class="enext-l">Between exams</div><div class="enext-v">CSC 226 focused review (11am–2pm)</div></div>
+      <div class="estrat"><div class="estrat-l">Execution plan</div><div class="estrat-t">Set alarms for 6am. Morning recap: CSC 222 card only. Write CSC 222 at 8am. After CSC 222: eat + 2 hrs focused CSC 226 review. Write CSC 226 at 3pm. Tonight: light CSC 227 card review only.</div></div>
+    </div>
+  </div>
+
+  <div class="ecard">
+    <div class="ehdr" style="background:#501313">
+      <span class="edate">Fri Jul 31 🏁 Last exam</span>
+      <span class="epills"><span class="epill">🙏 Prayer morning</span><span class="epill">CSC 227 · Evening</span></span>
+    </div>
+    <div class="ebody">
+      <div class="enext"><div class="enext-l">After this</div><div class="enext-v" style="color:#085041">🎉 All 9 exams complete</div></div>
+      <div class="estrat"><div class="estrat-l">Execution plan</div><div class="estrat-t">Prayer morning. Return and do a focused CSC 227 review — card recap + 1 round of past questions. No cramming, no panic. You've had this course since July 18. Arrive at the exam rested and ready. Then it's done.</div></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════════ DAILY SCHEDULE ════════════════ -->
+<div id="p-daily" class="panel">
+<div class="content">
+
+  <div class="sh">Daily schedule template</div>
+  <div class="ss">Every study day follows this structure. Even on your lowest motivation day — follow the times, not your feelings.</div>
+
+  <div class="alert info">ℹ️ ~11 hrs active study · ~3 hrs planned breaks · 8 hrs sleep. You cannot remember what you don't sleep on.</div>
+
+  <div class="trow">
+    <div class="ttime">6:30–7:00am</div><div class="tline"></div>
+    <div class="tblk" style="background:#E6F1FB"><div class="tlabel">Morning warm-up</div><div class="tdesc">Review yesterday's summary cards before your brain gets distracted. Not heavy reading — just scanning the cards you built. 3 minutes per card maximum.</div></div>
+  </div>
+  <div class="trow">
+    <div class="ttime">7:00–7:30am</div><div class="tline"></div>
+    <div class="tblk" style="background:#EAF3DE"><div class="tlabel">Breakfast</div><div class="tdesc">Eat a proper meal. Glucose is brain fuel. Skipping breakfast costs you cognitive performance in the first focus block — the most important block of the day.</div></div>
+  </div>
+  <div class="trow">
+    <div class="ttime">7:30–7:45am</div><div class="tline"></div>
+    <div class="tblk" style="background:#E6F1FB"><div class="tlabel">S — Scan <span class="tbadge">SPARK Step 1</span></div><div class="tdesc">Scan today's topic. Headings, subheadings, diagrams only. Get the skeleton first. Write one sentence: "This topic is about ___."</div></div>
+  </div>
+  <div class="trow">
+    <div class="ttime">7:45–10:15am</div><div class="tline"></div>
+    <div class="tblk" style="background:#EAF3DE"><div class="tlabel">P — Pomodoro reads <span class="tbadge">SPARK Step 2</span></div><div class="tdesc">4–5 Pomodoro blocks (25 min read, 5 min recall-write). Phone on full Do Not Disturb — not silent, full DND. After each block write 3 key points from memory on a blank page before reading the next sub-topic.</div></div>
+  </div>
+  <div class="trow">
+    <div class="ttime">10:15–10:30am</div><div class="tline"></div>
+    <div class="tblk" style="background:#F0EEE6"><div class="tlabel">Short break</div><div class="tdesc">Walk. Water. Stretch. No phone. No social media. Your brain is consolidating — let it.</div></div>
+  </div>
+  <div class="trow">
+    <div class="ttime">10:30am–12:30pm</div><div class="tline"></div>
+    <div class="tblk" style="background:#EAF3DE"><div class="tlabel">Continue Pomodoro reads <span class="tbadge">SPARK Step 2 cont.</span></div><div class="tdesc">Another 4 blocks. You are now covering the harder topics — stay in the chair. The fatigue you feel at 11am is normal. Push through the first 5 minutes of each block and the rest flows.</div></div>
+  </div>
+  <div class="trow">
+    <div class="ttime">12:30–1:30pm</div><div class="tline"></div>
+    <div class="tblk" style="background:#EAF3DE"><div class="tlabel">Lunch + rest</div><div class="tdesc">Proper meal. Short nap if needed — 20 minutes max, set an alarm. Full disconnect from notes. Do not study through lunch. Your afternoon performance depends on this break.</div></div>
+  </div>
+  <div class="trow">
+    <div class="ttime">1:30–1:50pm</div><div class="tline"></div>
+    <div class="tblk" style="background:#FAEEDA"><div class="tlabel">A — Active dump <span class="tbadge">SPARK Step 3</span></div><div class="tdesc">Close every note. On a blank page, write everything you can remember from today's reading. No hints. No peeking. After 20 minutes, open your notes and circle only the things you missed or got wrong.</div></div>
+  </div>
+  <div class="trow">
+    <div class="ttime">1:50–2:05pm</div><div class="tline"></div>
+    <div class="tblk" style="background:#FCEBEB"><div class="tlabel">R — Build summary card <span class="tbadge">SPARK Step 4</span></div><div class="tdesc">One page. Topic name at the top. Maximum 10 dense bullet points. Short and powerful. This card is what you review every morning and before every exam. It is your most important study artifact — build it properly.</div></div>
+  </div>
+  <div class="trow">
+    <div class="ttime">2:05–3:15pm</div><div class="tline"></div>
+    <div class="tblk" style="background:#EEEDFE"><div class="tlabel">K — Past questions <span class="tbadge">SPARK Step 5</span></div><div class="tdesc">Set a timer. Attempt past questions on today's topic. No notes open during the attempt. After time ends: mark every answer honestly. For every wrong answer — find the correct answer, write it on your summary card as a correction.</div></div>
+  </div>
+  <div class="trow">
+    <div class="ttime">3:15–3:30pm</div><div class="tline"></div>
+    <div class="tblk" style="background:#F0EEE6"><div class="tlabel">Short break</div><div class="tdesc">Walk. Water. 15 minutes — not 45. Come back on time.</div></div>
+  </div>
+  <div class="trow">
+    <div class="ttime">3:30–6:30pm</div><div class="tline"></div>
+    <div class="tblk" style="background:#E6F1FB"><div class="tlabel">2nd SPARK cycle or deep review</div><div class="tdesc">Either run a second SPARK cycle on the next topic, OR do an intensive deep-review of the day's weak spots (the circled items from your active dump). Do not just re-read — re-test yourself on those specific points.</div></div>
+  </div>
+  <div class="trow">
+    <div class="ttime">6:30–7:15pm</div><div class="tline"></div>
+    <div class="tblk" style="background:#EAF3DE"><div class="tlabel">Dinner + full disconnect</div><div class="tdesc">Eat properly. 45-minute complete break. No notes, no phone study content. This is not wasted time — it is recovery that funds your evening session.</div></div>
+  </div>
+  <div class="trow">
+    <div class="ttime">7:15–9:15pm</div><div class="tline"></div>
+    <div class="tblk" style="background:#FAEEDA"><div class="tlabel">Evening review</div><div class="tdesc">Read through your summary card for today's course. Then read all previous cards quickly (3 min each). This is your spaced repetition — it keeps older courses from fading before their exams.</div></div>
+  </div>
+  <div class="trow">
+    <div class="ttime">9:15–9:45pm</div><div class="tline"></div>
+    <div class="tblk" style="background:#FAC775"><div class="tlabel">Mind dump</div><div class="tdesc">Close everything. On a blank page, write everything you learned today from memory. No peeking. This is your single strongest memory consolidation tool. What you write here is what you will remember in the exam hall.</div></div>
+  </div>
+  <div class="trow">
+    <div class="ttime">9:45–10:00pm</div><div class="tline"></div>
+    <div class="tblk" style="background:#F0EEE6"><div class="tlabel">Wind down</div><div class="tdesc">No screens. No social media. No music with lyrics. Quiet only. Let your brain settle into sleep mode.</div></div>
+  </div>
+  <div class="trow">
+    <div class="ttime">10:00pm</div><div class="tline"></div>
+    <div class="tblk" style="background:#EEEDFE"><div class="tlabel">🌙 Sleep — 8 hours</div><div class="tdesc">Non-negotiable. Sleep is when your hippocampus transfers today's learning into long-term memory. No sleep = today's studying is partially wasted. This is not optional.</div></div>
+  </div>
+
+  <div class="rules">
+    <div class="rules-t">🚫 Hard rules — non-negotiable</div>
+    <div class="rule"><span>1.</span><span>Phone on full Do Not Disturb during every focus block — not silent, full DND. Notifications kill deep focus even when you don't respond to them.</span></div>
+    <div class="rule"><span>2.</span><span>No new material the morning of an exam. Summary card recap only. Your job that morning is to access what you know — not panic-load new information.</span></div>
+    <div class="rule"><span>3.</span><span>Always mark past questions the same day you attempt them. Mistakes not reviewed within 24 hours are effectively not corrected.</span></div>
+    <div class="rule"><span>4.</span><span>Never leave a mock test unmarked. Attempting without marking is entertainment, not studying.</span></div>
+    <div class="rule"><span>5.</span><span>No studying past 10pm. The marginal gain from one more hour is less than the loss from impaired sleep.</span></div>
+    <div class="rule"><span>6.</span><span>Rest days during the prep phase (none scheduled) are the only days with reduced load. Free days during exam phase are intensive review days — not rest days.</span></div>
+    <div class="rule"><span>7.</span><span>On Jul 30: set multiple alarms for the 8am exam. Missing an 8am paper because of a single failed alarm is a catastrophic, avoidable error.</span></div>
+  </div>
+
+</div>
+</div>
+
+<script>
+function showTab(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('p-'+id).classList.add('on');
+  btn.classList.add('on');
+}
+function tog(btn){
+  const det=btn.nextElementSibling;
+  const chev=btn.querySelector('.dchev');
+  const open=det.classList.contains('open');
+  det.classList.toggle('open',!open);
+  btn.classList.toggle('open',!open);
+  chev.textContent=open?'▼':'▲';
+}
+</script>
+</body>
+</html>
